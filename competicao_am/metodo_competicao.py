@@ -8,6 +8,12 @@ from sklearn.metrics import classification_report
 from sklearn.svm import LinearSVC
 
 class MetodoCompeticao(MetodoAprendizadoDeMaquina):
+    
+    def eval(self,df_treino:pd.DataFrame, df_data_to_predict:pd.DataFrame, col_classe:str) -> Resultado:
+        raise NotImplementedError
+
+
+class MetodoCompeticaoProf(MetodoAprendizadoDeMaquina):
     #você pode mudar a assinatura desta classe (por exemplo, usar dois metodos e o resultado da predição
     # seria a combinação desses dois)
     def __init__(self,ml_method:Union[ClassifierMixin,RegressorMixin]):
