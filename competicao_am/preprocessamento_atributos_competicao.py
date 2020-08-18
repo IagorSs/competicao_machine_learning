@@ -52,6 +52,12 @@ def calcula_IDF(df:pd.DataFrame, palavra:str, column:str) -> float:
         return 0
     return math.log(N/ni)
 
+def gerar_atributos_diretor(df_treino:pd.DataFrame, min_occur:int = 0) -> pd.DataFrame:
+    obj_bag = BagOfItems(min_occur=min_occur)
+    df_treino_boa = obj_bag.cria_bag_of_items(df_treino,["dirigido_por"])
+    
+    return df_treino_boa
+
 def gerar_atributos_ator(df_treino:pd.DataFrame, df_data_to_predict: pd.DataFrame) -> pd.DataFrame:
     obj_bag_of_actors = BagOfItems(min_occur=3)
     df_treino_boa = obj_bag_of_actors.cria_bag_of_items(df_treino,["ator_1","ator_2","ator_3","ator_4","ator_5"])
