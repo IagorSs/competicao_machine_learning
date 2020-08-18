@@ -1,4 +1,4 @@
-from competicao_am.metodo_competicao import MetodoCompeticaoProf
+from competicao_am.metodo_competicao import MetodoCompeticao
 from sklearn.svm import LinearSVC
 import pandas as pd
 
@@ -8,8 +8,7 @@ def gerar_saida_teste( df_data_to_predict, col_classe, num_grupo):
     só poderá ser modificada na fase de geração da solução. 
     """
 
-    scikit_method = LinearSVC(C=7, random_state=2)
-    ml_method = MetodoCompeticaoProf(scikit_method)
+    ml_method = MetodoCompeticao()
     
     #o treino será sempre o dataset completo - sem nenhum dado a mais e sem nenhum preprocessamento
     #esta função que deve encarregar de fazer o preprocessamento

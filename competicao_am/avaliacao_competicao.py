@@ -27,32 +27,3 @@ class OtimizacaoObjetivoSVMCompeticao(OtimizacaoObjetivo):
 
     def resultado_metrica_otimizacao(self,resultado: Resultado) -> float:
         return resultado.macro_f1
-
-
-class MeuMetodo(MetodoAprendizadoDeMaquina):
-
-    def eval(self,df_treino:pd.DataFrame, df_data_to_predict:pd.DataFrame, col_classe:str) -> Resultado:
-        return None
-
-    def data_rept(self,data_frame_treino:pd.DataFrame) -> pd.DataFrame:
-        max_times = data_frame_treino['dirigido_por'].value_counts()[0]
-
-        for i in range(max_times,0,-1):
-            size = len(gerar_atributos_diretor(data_frame_treino, i).columns)
-            if i == 2 or size > len(gerar_atributos_diretor(data_frame_treino, i))//2:
-                return gerar_atributos_diretor(data_frame_treino, i)
-    
-    def obtem_y(self, df_treino:pd.DataFrame, df_data_to_predict:pd.DataFrame, col_classe:str):
-        y_treino = self.class_to_number(df_treino[col_classe])
-        y_to_predict = None
-        #y_to_predict pod não existir (no dataset de teste fornecido pelo professor, por ex)
-        if col_classe in df_data_to_predict.columns:
-            y_to_predict = self.class_to_number(df_data_to_predict[col_classe])
-        return y_treino,y_to_predict
-
-    def obtem_x(self, df_treino:pd.DataFrame, df_data_to_predict:pd.DataFrame, col_classe:str):
-        x_treino = df_treino.drop(col_classe, axis = 1)
-        x_to_predict = df_data_to_predict
-        if col_classe in df_data_to_predict.columns:
-            x_to_predict = df_data_to_predict.drop(col_classe, axis = 1)
-        return x_treino, x_to_predict

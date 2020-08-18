@@ -1,6 +1,7 @@
 from base_am.metodo import MetodoAprendizadoDeMaquina
+from base_am.preprocessamento_atributos import BagOfItems
 import pandas as pd
-from .preprocessamento_atributos_competicao import gerar_atributos_ator, gerar_atributos_resumo
+from .preprocessamento_atributos_competicao import gerar_atributos_ator, gerar_atributos_resumo, gerar_atributos_diretor
 from base_am.resultado import Resultado
 from typing import Union, List
 from sklearn.base import ClassifierMixin, RegressorMixin
@@ -8,9 +9,111 @@ from sklearn.metrics import classification_report
 from sklearn.svm import LinearSVC
 
 class MetodoCompeticao(MetodoAprendizadoDeMaquina):
-    
-    def eval(self,df_treino:pd.DataFrame, df_data_to_predict:pd.DataFrame, col_classe:str) -> Resultado:
+
+    # Retorna Dataframe 'Comedy' ou 'Action'
+    def genero_df(self,df: pd.DataFrame, genero:str):
+        return df[df['genero'] == genero]
+
+    def diretores(self,df:pd.DataFrame) -> List[str]:
+        max_times = df['dirigido_por'].value_counts()[0]
+
+        for i in range(max_times,0,-1):
+            size = len(gerar_atributos_diretor(df, i).columns)
+            if i == 2 or size > len(gerar_atributos_diretor(df, i))//2:
+                return gerar_atributos_diretor(df, i).columns.to_list()
+
+    def escritores(self, df:pd.DataFrame, min_occur:int = 2) -> List[str]:
+        bag = BagOfItems(min_occur=min_occur)
+        action_escritores = bag.cria_bag_of_items(df, ['escrito_por_1','escrito_por_2']).columns.to_list()
+
+        return self.clean_list(action_escritores)
+
+    def clean_list(self,my_list:List[str]) -> List[str]:
+        if '' in my_list:
+            my_list.remove('')
+        if 'id' in my_list:
+            my_list.remove('id')
+        return my_list
+
+    def eval_diretores(self, df:pd.DataFrame, df_to_predict:pd.DataFrame) -> List[str]:
+        df_treino_action = self.genero_df(df,'Action')
+        df_treino_comedy = self.genero_df(df,'Comedy')
+
+        action_diretores = self.clean_list(self.diretores(df_treino_action))
+        comedy_diretores = self.clean_list(self.diretores(df_treino_comedy))
+
+        arr_predict = []
+
+        for value in df_to_predict['dirigido_por']:
+            if value in action_diretores:
+                arr_predict.append('Action')
+            elif value in comedy_diretores:
+                arr_predict.append('Comedy')
+            else:
+                arr_predict.append('Comedy')
+
+        return arr_predict
+
+    def eval_escritores(self, df:pd.DataFrame, df_to_predict:pd.DataFrame) -> List[str]:
+        df_treino_action = self.genero_df(df,'Action')
+        df_treino_comedy = self.genero_df(df,'Comedy')
+
+        action_escritores = self.clean_list(self.escritores(df_treino_action))
+        comedy_escritores = self.clean_list(self.escritores(df_treino_comedy))
+
+        arr_predict = []
+
+        for value in df_to_predict['dirigido_por']:
+            if value in action_escritores:
+                arr_predict.append('Action')
+            elif value in comedy_escritores:
+                arr_predict.append('Comedy')
+            else:
+                arr_predict.append('Comedy')
+
+        return arr_predict
+
+    def eval_resumos(self, df:pd.DataFrame, df_to_predict:pd.DataFrame) -> List[str]:
         raise NotImplementedError
+    
+    def zerolistmaker(self,n):
+        listofzeros = [0] * n
+        return listofzeros
+
+    def combine_predictions(self, arrays:List[List[str]]) -> List[str]:
+
+        decided_by_vote = self.zerolistmaker(len(arrays[0]))
+
+        for array in arrays:
+            if len(array) != len(decided_by_vote):
+                raise NameError('Break size of predictions')
+            for i,prediction in enumerate(array):
+                if prediction == 'Action':
+                    decided_by_vote[i] += 1
+                elif prediction == 'Comedy':
+                    decided_by_vote[i] -= 1
+                else:
+                    raise NameError('Prediction unexpected!')
+
+        for i,value in enumerate(decided_by_vote):
+            if value > 0:
+                decided_by_vote[i] = 'Action'
+            else:
+                decided_by_vote[i] = 'Comedy'
+
+        return decided_by_vote
+
+    def eval(self,df_treino:pd.DataFrame, df_data_to_predict:pd.DataFrame, col_classe:str) -> Resultado:
+        arr_predictions_diretores = self.eval_diretores(df_treino, df_data_to_predict)
+        arr_predictions_escritores = self.eval_escritores(df_treino, df_data_to_predict)
+        arr_predictions_resumos = self.eval_resumos(df_treino, df_data_to_predict)
+
+        y_to_predict = df_data_to_predict[col_classe]
+
+        #combina as duas
+        arr_final_predictions = self.combine_predictions([arr_predictions_diretores,arr_predictions_escritores,arr_predictions_resumos])
+
+        return Resultado(y_to_predict, arr_final_predictions)
 
 
 class MetodoCompeticaoProf(MetodoAprendizadoDeMaquina):
