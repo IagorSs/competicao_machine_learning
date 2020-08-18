@@ -50,7 +50,7 @@ class MetodoCompeticao(MetodoAprendizadoDeMaquina):
             elif value in comedy_diretores:
                 arr_predict.append('Comedy')
             else:
-                arr_predict.append('Comedy')
+                arr_predict.append('default')
 
         return arr_predict
 
@@ -69,7 +69,7 @@ class MetodoCompeticao(MetodoAprendizadoDeMaquina):
             elif value in comedy_escritores:
                 arr_predict.append('Comedy')
             else:
-                arr_predict.append('Comedy')
+                arr_predict.append('default')
 
         return arr_predict
 
@@ -85,13 +85,17 @@ class MetodoCompeticao(MetodoAprendizadoDeMaquina):
         decided_by_vote = self.zerolistmaker(len(arrays[0]))
 
         for array in arrays:
+
             if len(array) != len(decided_by_vote):
                 raise NameError('Break size of predictions')
+            
             for i,prediction in enumerate(array):
                 if prediction == 'Action':
                     decided_by_vote[i] += 1
                 elif prediction == 'Comedy':
                     decided_by_vote[i] -= 1
+                elif prediction == 'default':
+                    continue
                 else:
                     raise NameError('Prediction unexpected!')
 
