@@ -1,5 +1,56 @@
 import pandas as pd
+import math
 from base_am.preprocessamento_atributos import BagOfWords, BagOfItems
+
+def standart_text(df:pd.DataFrame, column:str) -> pd.DataFrame:
+    df_current = df
+    for i,text in enumerate(df_current[column]):
+        text_2 = text.replace('.',' ')
+        text_final = text_2.replace(',',' ')
+        df_current[column][i] = str.upper(text_final)
+        if i == len(df):
+            break
+    return df_current
+
+def words_IDF(dataFrame:pd.DataFrame, column:str, min_ocurr:int = 4) -> pd.Series:
+    data_words = pd.Series()
+
+    df = standart_text(dataFrame, column)
+
+    for i,text in enumerate(df[column]):
+        words = text.split()
+        for word in words:
+            if len(word) < min_ocurr:
+                continue
+            no_check = False
+            for key in data_words.index:
+                if word == key:
+                    no_check = True
+                    break
+            if no_check:
+                continue
+            data_words[word] = calcula_IDF(df,word,column)
+        if i == len(df):
+            break
+            
+    return data_words
+
+def calcula_IDF(df:pd.DataFrame, palavra:str, column:str) -> float:
+    N = len(df)
+    ni = 0
+    
+    for i,text in enumerate(df[column]):
+        words = text.split()
+        for word in words:
+            if palavra == word:
+                ni += 1
+                break
+        if i == len(df):
+            break
+
+    if ni == 0:
+        return 0
+    return math.log(N/ni)
 
 def gerar_atributos_ator(df_treino:pd.DataFrame, df_data_to_predict: pd.DataFrame) -> pd.DataFrame:
     obj_bag_of_actors = BagOfItems(min_occur=3)
