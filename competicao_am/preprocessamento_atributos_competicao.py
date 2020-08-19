@@ -1,5 +1,6 @@
 import pandas as pd
 import math
+from typing import List
 from base_am.preprocessamento_atributos import BagOfWords, BagOfItems
 
 def standart_text(df:pd.DataFrame, column:str) -> pd.DataFrame:
@@ -15,13 +16,13 @@ def standart_text(df:pd.DataFrame, column:str) -> pd.DataFrame:
         df_current[column][index[i]] = str.upper(text_final)
     return df_current
 
-def words_IDF(dataFrame:pd.DataFrame, column:str, min_lenght:int = 4) -> pd.Series:
+def words_IDF(dataFrame:pd.DataFrame, column:str, min_lenght:int = 4, flags:bool = False) -> pd.Series:
     data_words = pd.Series()
 
     df = standart_text(dataFrame, column)
 
     for i,text in enumerate(df[column]):
-        if i % 100 == 0:
+        if i % 100 == 0 and flags:
             print(f'{i}/{len(df[column])}')
         if type(text) != str or text == '':
             continue
@@ -63,18 +64,6 @@ def gerar_atributos_diretor(df_treino:pd.DataFrame, min_occur:int = 0) -> pd.Dat
     
     return df_treino_boa
 
-def gerar_atributos_ator(df_treino:pd.DataFrame, df_data_to_predict: pd.DataFrame) -> pd.DataFrame:
-    obj_bag_of_actors = BagOfItems(min_occur=3)
-    df_treino_boa = obj_bag_of_actors.cria_bag_of_items(df_treino,["ator_1","ator_2","ator_3","ator_4","ator_5"])
-    df_data_to_predict_boa = obj_bag_of_actors.aplica_bag_of_items(df_data_to_predict,["ator_1","ator_2","ator_3","ator_4","ator_5"])
-
-    
-
-    return df_treino_boa, df_data_to_predict_boa
-
-def gerar_atributos_resumo(df_treino:pd.DataFrame, df_data_to_predict: pd.DataFrame) -> pd.DataFrame:
-    bow_amostra = BagOfWords()
-    df_bow_treino = bow_amostra.cria_bow(df_treino,"resumo")
-    df_bow_data_to_predict = bow_amostra.aplica_bow(df_data_to_predict,"resumo")
-
-    return df_bow_treino,df_bow_data_to_predict
+def zerolistmaker(n:int) -> List[int]:
+    listofzeros = [0] * n
+    return listofzeros

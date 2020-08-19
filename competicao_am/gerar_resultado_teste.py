@@ -1,8 +1,7 @@
 from competicao_am.metodo_competicao import MetodoCompeticao
-from sklearn.svm import LinearSVC
 import pandas as pd
 
-def gerar_saida_teste( df_data_to_predict, col_classe, num_grupo,data_treino = False):
+def gerar_saida_teste( df_data_to_predict, col_classe, num_grupo):
     """
     Assim como os demais códigos da pasta "competicao_am", esta função 
     só poderá ser modificada na fase de geração da solução. 
@@ -10,10 +9,8 @@ def gerar_saida_teste( df_data_to_predict, col_classe, num_grupo,data_treino = F
 
     #o treino será sempre o dataset completo - sem nenhum dado a mais e sem nenhum preprocessamento
     #esta função que deve encarregar de fazer o preprocessamento
-    if data_treino.__bool__:
-        df_treino = data_treino
-    else:
-        df_treino = pd.read_csv("datasets/movies_amostra.csv")
+
+    df_treino = pd.read_csv("datasets/movies_amostra.csv")
 
     ml_method = MetodoCompeticao()
 
