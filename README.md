@@ -3,7 +3,7 @@
 Arquivos diretórios e pastas para um projeto de Machine Learning tutorado pelo Professor Daniel Hasan Dalip do Centro Federal de Educação Tecnológica de Minas Gerais (CEFET-MG)
 
 <p align="center">
-  <img width="500" height="307" src="/photo.png">
+  <img width="600" height="307" src="/photo.png">
 </p>
 
 ## Processo
