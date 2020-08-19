@@ -7,6 +7,7 @@ from typing import Union, List
 from sklearn.base import ClassifierMixin, RegressorMixin
 from sklearn.metrics import classification_report
 from sklearn.svm import LinearSVC
+from competicao_am.preprocessamento_atributos_competicao import words_IDF
 
 class MetodoCompeticao(MetodoAprendizadoDeMaquina):
 
@@ -61,15 +62,29 @@ class MetodoCompeticao(MetodoAprendizadoDeMaquina):
         action_escritores = self.clean_list(self.escritores(df_treino_action))
         comedy_escritores = self.clean_list(self.escritores(df_treino_comedy))
 
-        arr_predict = []
+        arr_predict = self.zerolistmaker(len(df_to_predict))
 
-        for value in df_to_predict['dirigido_por']:
+        for i,value in enumerate(df_to_predict['escrito_por_1']):
             if value in action_escritores:
-                arr_predict.append('Action')
+                arr_predict[i] += 1
             elif value in comedy_escritores:
-                arr_predict.append('Comedy')
+                arr_predict[i] -= 1
+
+        for value in df_to_predict['escrito_por_2']:
+            if value in action_escritores:
+                arr_predict[i] += 1
+            elif value in comedy_escritores:
+                arr_predict[i] -= 1
+        
+        for i,value in enumerate(arr_predict):
+            if value > 0:
+                arr_predict[i] = 'Action'
+            elif value < 0:
+                arr_predict[i] = 'Comedy'
+            elif value == 0:
+                arr_predict[i] = 'default'
             else:
-                arr_predict.append('default')
+                raise NameError(f'Break: unexpected value {value} on position {i}')
 
         return arr_predict
 
@@ -87,15 +102,15 @@ class MetodoCompeticao(MetodoAprendizadoDeMaquina):
         for array in arrays:
 
             if len(array) != len(decided_by_vote):
-                raise NameError('Break size of predictions')
-            
+                raise NameError('Break: size of predictions')
+
             for i,prediction in enumerate(array):
-                if prediction == 'Action':
+                if prediction == 'default':
+                    continue
+                elif prediction == 'Action':
                     decided_by_vote[i] += 1
                 elif prediction == 'Comedy':
                     decided_by_vote[i] -= 1
-                elif prediction == 'default':
-                    continue
                 else:
                     raise NameError('Prediction unexpected!')
 

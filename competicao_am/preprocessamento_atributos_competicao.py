@@ -12,7 +12,7 @@ def standart_text(df:pd.DataFrame, column:str) -> pd.DataFrame:
             break
     return df_current
 
-def words_IDF(dataFrame:pd.DataFrame, column:str, min_ocurr:int = 4) -> pd.Series:
+def words_IDF(dataFrame:pd.DataFrame, column:str, min_lenght:int = 4) -> pd.Series:
     data_words = pd.Series()
 
     df = standart_text(dataFrame, column)
@@ -20,7 +20,7 @@ def words_IDF(dataFrame:pd.DataFrame, column:str, min_ocurr:int = 4) -> pd.Serie
     for i,text in enumerate(df[column]):
         words = text.split()
         for word in words:
-            if len(word) < min_ocurr:
+            if len(word) < min_lenght:
                 continue
             no_check = False
             for key in data_words.index:
