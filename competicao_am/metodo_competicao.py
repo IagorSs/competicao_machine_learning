@@ -7,7 +7,7 @@ from typing import Union, List
 from sklearn.base import ClassifierMixin, RegressorMixin
 from sklearn.metrics import classification_report
 from sklearn.svm import LinearSVC
-from competicao_am.preprocessamento_atributos_competicao import words_IDF
+from competicao_am.preprocessamento_atributos_competicao import words_IDF, standart_text
 
 class MetodoCompeticao(MetodoAprendizadoDeMaquina):
 
@@ -88,8 +88,85 @@ class MetodoCompeticao(MetodoAprendizadoDeMaquina):
 
         return arr_predict
 
-    def eval_resumos(self, df:pd.DataFrame, df_to_predict:pd.DataFrame) -> List[str]:
-        raise NotImplementedError
+    # Implementar se possível recebimento somente de itens para checar em caso de diretor e escritor serem inconclusivos
+    def eval_resumos(self, df:pd.DataFrame, df_to_predict:pd.DataFrame, max_min_IDF:List[float] = False) -> List[str]:
+        df_treino_action = self.genero_df(df,'Action')
+        df_treino_comedy = self.genero_df(df,'Comedy')
+
+        df_to_predict_formated = standart_text(df_to_predict,'resumo')
+
+        data_action_words = words_IDF(df_treino_action,'resumo')
+        print('Action words discovered!')
+        data_comedy_words = words_IDF(df_treino_comedy,'resumo')
+        print('Comedy words discovered!')
+
+        for value_action in data_action_words.keys():
+            for value_comedy in data_comedy_words.keys():
+                if value_comedy == value_action:
+                    data_action_words.drop(value_action)
+                    data_comedy_words.drop(value_comedy)
+                    break
+        
+        print('Palavras semelhantes retiradas')
+
+        if not bool(max_min_IDF):
+            max_IDF_action = data_action_words[0]*0.8
+            max_IDF_comedy = data_comedy_words[0]*0.8
+
+            min_IDF_action = data_action_words[len(data_action_words)-1]
+            min_IDF_comedy = data_comedy_words[len(data_comedy_words)-1]
+        else:
+            max_IDF = max_min_IDF[0]
+            min_IDF = max_min_IDF[1]
+
+        print('Max and Min setted')
+
+        action_words = []
+        comedy_words = []
+
+        for key,value in data_action_words.iteritems():
+            if not bool(max_min_IDF):
+                if value <= max_IDF_action and value >= min_IDF_action:
+                    action_words.append(key)
+            else:
+                if value <= max_IDF and value >= min_IDF:
+                    action_words.append(key)
+
+        for key,value in data_comedy_words.iteritems():
+            if not bool(max_min_IDF):
+                if value <= max_IDF_comedy and value >= min_IDF_comedy:
+                    comedy_words.append(key)
+            else:
+                if value <= max_IDF and value >= min_IDF:
+                    comedy_words.append(key)
+
+        print('Palavras de comédia e ação refinadas')
+
+        arr_predict = self.zerolistmaker(len(df_to_predict))
+
+        for i,text in enumerate(df_to_predict_formated['resumo']):
+            if type(text) != str or text == '':
+                continue
+            words = text.split()
+            for word in words:
+                if word in action_words:
+                    arr_predict[i] += 1
+                elif word in comedy_words:
+                    arr_predict[i] -= 1
+                else:
+                    continue
+
+        for i,value in enumerate(arr_predict):
+            if value > 0:
+                arr_predict[i] = 'Action'
+            elif value < 0:
+                arr_predict[i] = 'Comedy'
+            elif value == 0:
+                arr_predict[i] = 'default'
+            else:
+                raise NameError(f'Break: unexpected value {value} on position {i}')
+
+        return arr_predict
     
     def zerolistmaker(self,n):
         listofzeros = [0] * n
@@ -124,12 +201,17 @@ class MetodoCompeticao(MetodoAprendizadoDeMaquina):
 
     def eval(self,df_treino:pd.DataFrame, df_data_to_predict:pd.DataFrame, col_classe:str) -> Resultado:
         arr_predictions_diretores = self.eval_diretores(df_treino, df_data_to_predict)
+        print('Diretores avaliados!')
+
         arr_predictions_escritores = self.eval_escritores(df_treino, df_data_to_predict)
+        print('Escritores avaliados!')
+
         arr_predictions_resumos = self.eval_resumos(df_treino, df_data_to_predict)
+        print('Resumos avaliados!')
 
-        y_to_predict = df_data_to_predict[col_classe]
+        y_to_predict = df_data_to_predict[col_classe].tolist()
 
-        #combina as duas
+        #combina as três
         arr_final_predictions = self.combine_predictions([arr_predictions_diretores,arr_predictions_escritores,arr_predictions_resumos])
 
         return Resultado(y_to_predict, arr_final_predictions)

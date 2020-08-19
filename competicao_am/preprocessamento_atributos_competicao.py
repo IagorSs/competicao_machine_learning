@@ -4,12 +4,15 @@ from base_am.preprocessamento_atributos import BagOfWords, BagOfItems
 
 def standart_text(df:pd.DataFrame, column:str) -> pd.DataFrame:
     df_current = df
+    index = df.index
     for i,text in enumerate(df_current[column]):
+        if type(text) != str or text == '':
+            df_current[column][index[i]] = str('')
+            continue
         text_2 = text.replace('.',' ')
-        text_final = text_2.replace(',',' ')
-        df_current[column][i] = str.upper(text_final)
-        if i == len(df):
-            break
+        text_3 = text_2.replace('"',' ')
+        text_final = text_3.replace(',',' ')
+        df_current[column][index[i]] = str.upper(text_final)
     return df_current
 
 def words_IDF(dataFrame:pd.DataFrame, column:str, min_lenght:int = 4) -> pd.Series:
@@ -18,6 +21,10 @@ def words_IDF(dataFrame:pd.DataFrame, column:str, min_lenght:int = 4) -> pd.Seri
     df = standart_text(dataFrame, column)
 
     for i,text in enumerate(df[column]):
+        if i % 100 == 0:
+            print(f'{i}/{len(df[column])}')
+        if type(text) != str or text == '':
+            continue
         words = text.split()
         for word in words:
             if len(word) < min_lenght:
@@ -30,8 +37,6 @@ def words_IDF(dataFrame:pd.DataFrame, column:str, min_lenght:int = 4) -> pd.Seri
             if no_check:
                 continue
             data_words[word] = calcula_IDF(df,word,column)
-        if i == len(df):
-            break
             
     return data_words
 
@@ -39,14 +44,14 @@ def calcula_IDF(df:pd.DataFrame, palavra:str, column:str) -> float:
     N = len(df)
     ni = 0
     
-    for i,text in enumerate(df[column]):
+    for text in df[column]:
+        if type(text) != str:
+            continue
         words = text.split()
         for word in words:
             if palavra == word:
                 ni += 1
                 break
-        if i == len(df):
-            break
 
     if ni == 0:
         return 0
