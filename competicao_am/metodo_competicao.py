@@ -70,7 +70,7 @@ class MetodoCompeticao(MetodoAprendizadoDeMaquina):
             elif value in comedy_escritores:
                 arr_predict[i] -= 1
 
-        for value in df_to_predict['escrito_por_2']:
+        for i, value in enumerate(df_to_predict['escrito_por_2']):
             if value in action_escritores:
                 arr_predict[i] += 1
             elif value in comedy_escritores:
