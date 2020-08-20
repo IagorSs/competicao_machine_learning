@@ -10,9 +10,7 @@ def gerar_saida_teste( df_data_to_predict:pd.DataFrame, col_classe:str, num_grup
     #o treino será sempre o dataset completo - sem nenhum dado a mais e sem nenhum preprocessamento
     #esta função que deve encarregar de fazer o preprocessamento
 
-    if df_data_to_predict == None:
-        raise NameError('Não foi passado nenhum dataFrame para ser predito')
-
+    
     if num_grupo == None or type(num_grupo) != str:
         raise NameError(f'Num_grupo inadequado (lembre-se que ele deve ser uma string) - {num_grupo}')
 
